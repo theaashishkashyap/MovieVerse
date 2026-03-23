@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieVerse</title>
+    <!-- Importing a modern font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for Netflix-style Dark Theme */
+        :root {
+            --bg-color: #141414;
+            --card-bg: #222222;
+            --primary-color: #e50914;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+            --hover-shadow: rgba(229, 9, 20, 0.4);
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* --- HEADER --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: rgba(20, 20, 20, 0.95);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        .logo span {
+            color: var(--text-light);
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: 1px solid #444;
+            background: #000;
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all var(--transition-speed) ease;
+        }
+
+        #search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(229, 9, 20, 0.3);
+        }
+
+        /* --- FILTERS --- */
+        .filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 30px 5%;
+        }
+
+        .filter-btn {
+            padding: 8px 24px;
+            border-radius: 20px;
+            border: 1px solid #444;
+            background: var(--card-bg);
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary-color);
+            background: #333;
+        }
+
+        .filter-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(229, 9, 20, 0.3);
+        }
+
+        /* --- MOVIE GRID --- */
+        main {
+            padding: 0 5% 50px 5%;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 30px;
+        }
+
+        .movie-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .movie-card:hover {
+            transform: scale(1.05) translateY(-8px);
+            box-shadow: 0 15px 30px var(--hover-shadow);
+            z-index: 10;
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 330px;
+            object-fit: cover;
+            display: block;
+            background: #333; /* Fallback for slow loading images */
+        }
+
+        .card-info {
+            padding: 15px;
+        }
+
+        .card-info h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-info .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .genre-badge {
+            background: #333;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .rating {
+            color: #f5c518;
+            font-weight: 700;
+        }
+
+        /* --- HOVER OVERLAY --- */
+        .hover-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .movie-card:hover .hover-overlay {
+            opacity: 1;
+        }
+
+        .hover-overlay .year {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .hover-overlay p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #ddd;
+            margin-bottom: 20px;
+            /* Truncate long descriptions */
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .play-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .play-btn:hover {
+            background: #ff0f1a;
+        }
+
+        /* --- NO RESULTS --- */
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .search-container {
+                max-width: 100%;
+            }
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 20px;
+            }
+            .movie-card img {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Movie<span>Verse</span></div>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Search for movies, genres...">
+        </div>
+    </header>
+
+    <nav class="filters" id="filters">
+        <button class="filter-btn active" data-genre="All">All</button>
+        <button class="filter-btn" data-genre="Action">Action</button>
+        <button class="filter-btn" data-genre="Sci-Fi">Sci-Fi</button>
+        <button class="filter-btn" data-genre="Comedy">Comedy</button>
+        <button class="filter-btn" data-genre="Drama">Drama</button>
+        <button class="filter-btn" data-genre="Animation">Animation</button>
+        <button class="filter-btn" data-genre="Thriller">Thriller</button>
+    </nav>
+
+    <main>
+        <div class="movie-grid" id="movie-grid">
+            <!-- Movie cards will be dynamically inserted here via JS -->
+        </div>
+        <div id="no-results" class="no-results hidden">
+            🎬 No movies found. Try a different search!
+        </div>
+    </main>
+
+    <script>
+        // 🎬 Movie Data (20 Movies with updated real poster URLs)
+        const movies = [
+            { title: "Inception", genre: "Sci-Fi", rating: 8.8, year: 2010, description: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.", poster: "https://image.tmdb.org/t/p/w500/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg" },
+            { title: "The Dark Knight", genre: "Action", rating: 9.0, year: 2008, description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.", poster: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
+            { title: "Interstellar", genre: "Sci-Fi", rating: 8.6, year: 2014, description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival as Earth's resources are being rapidly depleted.", poster: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" },
+            { title: "Parasite", genre: "Thriller", rating: 8.6, year: 2019, description: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.", poster: "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg" },
+            { title: "Avengers: Endgame", genre: "Action", rating: 8.4, year: 2019, description: "After the devastating events of Infinity War, the Avengers assemble once more in order to reverse Thanos' actions and restore balance to the universe.", poster: "https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg" },
+            { title: "The Matrix", genre: "Sci-Fi", rating: 8.7, year: 1999, description: "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.", poster: "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg" },
+            { title: "Joker", genre: "Drama", rating: 8.4, year: 2019, description: "In Gotham City, mentally troubled comedian Arthur Fleck is disregarded and mistreated by society. He then embarks on a downward spiral of revolution and bloody crime.", poster: "https://image.tmdb.org/t/p/w500/udDclJoHjfpt8QnAKvdQY1m8tU0.jpg" },
+            { title: "Pulp Fiction", genre: "Action", rating: 8.9, year: 1994, description: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.", poster: "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPbOYKQmG_d.jpg" },
+            { title: "Spirited Away", genre: "Animation", rating: 8.6, year: 2001, description: "During her family's move to the suburbs, a sullen 10-year-old girl wanders into a world ruled by gods, witches, and spirits, and where humans are changed into beasts.", poster: "https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkCw8hVkM.jpg" },
+            { title: "Gladiator", genre: "Action", rating: 8.5, year: 2000, description: "A former Roman General sets out to exact vengeance against the corrupt emperor who murdered his family and sent him into slavery.", poster: "https://image.tmdb.org/t/p/w500/ty8TGRuvJLPUmAR1H1nRIsgwvq6.jpg" },
+            { title: "The Lion King", genre: "Animation", rating: 8.5, year: 1994, description: "Lion prince Simba and his father are targeted by his bitter uncle, who wants to ascend the throne himself.", poster: "https://image.tmdb.org/t/p/w500/sKCr78AS8oXOqgV30Oq8G8lXv8T.jpg" },
+            { title: "Forrest Gump", genre: "Drama", rating: 8.8, year: 1994, description: "The presidencies of Kennedy and Johnson, the Vietnam War, and the Watergate scandal, seen through the eyes of an Alabama man with an IQ of 75.", poster: "https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg" },
+            { title: "Mad Max: Fury Road", genre: "Action", rating: 8.1, year: 2015, description: "In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search for her homeland with the aid of a group of female prisoners.", poster: "https://image.tmdb.org/t/p/w500/hA2ple9q4cbjVrU2B0xKk94EofN.jpg" },
+            { title: "Coco", genre: "Animation", rating: 8.4, year: 2017, description: "Aspiring musician Miguel, confronted with his family's ancestral ban on music, enters the Land of the Dead to find his great-great-grandfather.", poster: "https://image.tmdb.org/t/p/w500/gGEsBPAijhVMoNbvdHJEgP1wN3t.jpg" },
+            { title: "The Grand Budapest Hotel", genre: "Comedy", rating: 8.1, year: 2014, description: "A writer encounters the owner of an aging high-class hotel, who tells him of his early years serving as a lobby boy in the hotel's glorious years.", poster: "https://image.tmdb.org/t/p/w500/eWdyYQreja6JGCzqHWXpWHDrrPo.jpg" },
+            { title: "Superbad", genre: "Comedy", rating: 7.6, year: 2007, description: "Two co-dependent high school seniors are forced to deal with separation anxiety after their plan to stage a booze-soaked party goes awry.", poster: "https://image.tmdb.org/t/p/w500/ek8e8txUyUwd2HNXtmEEiCXxVN1.jpg" },
+            { title: "John Wick", genre: "Action", rating: 7.4, year: 2014, description: "An ex-hit-man comes out of retirement to track down the gangsters that killed his dog and took everything from him.", poster: "https://image.tmdb.org/t/p/w500/fZPSd91wGE9yus4aEcwkUuBqE2A.jpg" },
+            { title: "The Shawshank Redemption", genre: "Drama", rating: 9.3, year: 1994, description: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.", poster: "https://image.tmdb.org/t/p/w500/9cqNxxWXNDsP8M82zD2qOQ1lE.jpg" },
+            { title: "Get Out", genre: "Thriller", rating: 7.7, year: 2017, description: "A young African-American visits his white girlfriend's parents for the weekend, where his simmering uneasiness about their reception of him reaches a boiling point.", poster: "https://image.tmdb.org/t/p/w500/tFXcEccSQAmRoIdcgX1gV17z08e.jpg" },
+            { title: "Toy Story", genre: "Animation", rating: 8.3, year: 1995, description: "A cowboy doll is profoundly threatened and jealous when a new spaceman figure supplants him as top toy in a boy's room.", poster: "https://image.tmdb.org/t/p/w500/uXDfjJbdP4ijW5hWSBrPrlKpxab.jpg" },
+        ];
+
+        // ⚙️ DOM Elements
+        const movieGrid = document.getElementById('movie-grid');
+        const searchInput = document.getElementById('search-input');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const noResults = document.getElementById('no-results');
+
+        // ⚙️ Function to Render Movies
+        function renderMovies(moviesArray) {
+            movieGrid.innerHTML = ''; // Clear current grid
+
+            if (moviesArray.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            moviesArray.forEach(movie => {
+                const card = document.createElement('div');
+                card.classList.add('movie-card');
+
+                // Using onerror to provide a guaranteed fallback image if a URL breaks
+                card.innerHTML = `
+                    <img 
+                        src="${movie.poster}" 
+                        alt="${movie.title} Poster" 
+                        loading="lazy" 
+                        onerror="this.onerror=null; this.src='https://placehold.co/500x750/333/fff?text=${encodeURIComponent(movie.title)}'"
+                    >
+                    <div class="card-info">
+                        <h3>${movie.title}</h3>
+                        <div class="meta">
+                            <span class="genre-badge">${movie.genre}</span>
+                            <span class="rating">⭐ ${movie.rating}</span>
+                        </div>
+                    </div>
+                    <div class="hover-overlay">
+                        <div class="year">${movie.year}</div>
+                        <p>${movie.description}</p>
+                        <button class="play-btn">▶ Play Trailer</button>
+                    </div>
+                `;
+                
+                movieGrid.appendChild(card);
+            });
+        }
+
+        // ⚙️ Filter Logic Function
+        function filterMovies() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const activeGenre = document.querySelector('.filter-btn.active').dataset.genre;
+
+            const filteredMovies = movies.filter(movie => {
+                const matchesSearch = movie.title.toLowerCase().includes(searchTerm) || 
+                                      movie.genre.toLowerCase().includes(searchTerm);
+                const matchesGenre = activeGenre === 'All' || movie.genre === activeGenre;
+                
+                return matchesSearch && matchesGenre;
+            });
+
+            renderMovies(filteredMovies);
+        }
+
+        // ⚙️ Event Listeners
+        
+        // Search bar input
+        searchInput.addEventListener('input', filterMovies);
+
+        // Category buttons click
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Remove active class from all buttons
+                filterBtns.forEach(button => button.classList.remove('active'));
+                
+                // Add active class to clicked button
+                e.target.classList.add('active');
+                
+                // Re-run the filter logic
+                filterMovies();
+            });
+        });
+
+        // 🚀 Initial Render on Page Load
+        renderMovies(movies);
+
+    </script>
+</body>
+</html>
